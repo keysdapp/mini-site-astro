@@ -1,8 +1,22 @@
 {
-"extends": "astro/tsconfigs/strict",
-"compilerOptions": {
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@layouts/*": [
+        "src/layouts/*"
+      ],
+      "@lib/*": [
+        "src/lib/*"
+      ]
+    },
     "types": [
-        "@cloudflare/workers-types/2023-07-01"
-    ]
-}
+      "@cloudflare/workers-types/2023-07-01"
+    ],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js"
+  }
 }

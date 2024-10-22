@@ -1,0 +1,49 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  points: number;
+  color: string;
+}
+
+const { id, name, points, color } = Astro.props;
+---
+
+<a href=`/teams/${id}/` class="card">
+  <h2>{name}</h2>
+  <p class="points">{points}</p>
+</a>
+
+<style define:vars={{ color }}>
+  .card {
+    background-color: var(--foreground);
+    border: 3px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+
+    & h2 {
+      margin-top: auto;
+      margin-bottom: 10px;
+    }
+  }
+
+  .points {
+    color: var(--color);
+    font-family: var(--number-font);
+    font-size: 4em;
+    margin-top: auto;
+    margin-bottom: 10px;
+  }
+
+  /* small tablet styles */
+  @media screen and (min-width: 620px) {
+    .card {
+      grid-column: span 2;
+    }
+  }
+</style>

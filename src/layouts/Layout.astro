@@ -1,4 +1,8 @@
 ---
+import "@fontsource-variable/dm-sans";
+import "@fontsource/dm-mono/500.css";
+import "@fontsource/dm-serif-display";
+
 interface Props {
   title: string;
 }
@@ -21,30 +25,67 @@ const { title } = Astro.props;
   </body>
 </html>
 <style is:global>
+  /* variables */
   :root {
-    --accent: 136, 58, 234;
-    --accent-light: 224, 204, 250;
-    --accent-dark: 49, 10, 101;
-    --accent-gradient: linear-gradient(
-      45deg,
-      rgb(var(--accent)),
-      rgb(var(--accent-light)) 30%,
-      white 60%
-    );
+    --primary: #9b84ee;
+    --primary-content: #210e65;
+    --primary-dark: #7757e8;
+    --primary-light: #bfb1f4;
+
+    --secondary: #ee84d7;
+    --secondary-content: #650e52;
+    --secondary-dark: #e857c8;
+    --secondary-light: #f4b1e6;
+
+    --background: #18161d;
+    --foreground: #24212b;
+    --border: #3b3848;
+
+    --copy: #fbfbfc;
+    --copy-light: #d6d4de;
+    --copy-lighter: #9f9bb1;
+
+    --success: #84ee84;
+    --warning: #eeee84;
+    --error: #ee8484;
+    --success-content: #0e650e;
+    --warning-content: #65650e;
+    --error-content: #650e0e;
+
+    --header-font: "DM Serif Display", serif;
+    --text-font: "DM Sans Variable", sans-serif;
+    --number-font: "DM Mono", monospace;
   }
-  html {
-    font-family: system-ui, sans-serif;
-    background: #13151a;
+
+  /* mini reset */
+  body {
+    margin: 0;
+    background-color: var(--background);
   }
-  code {
-    font-family:
-      Menlo,
-      Monaco,
-      Lucida Console,
-      Liberation Mono,
-      DejaVu Sans Mono,
-      Bitstream Vera Sans Mono,
-      Courier New,
-      monospace;
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: unset;
+  }
+
+  /* text styles */
+  h2 {
+    color: var(--copy-light);
+    font-family: var(--text-font);
+    font-weight: 500;
+    font-size: 1.5em;
+  }
+
+  /* responsive */
+  @media screen and (min-width: 1280px) {
+    html {
+      font-size: 1.24rem;
+    }
   }
 </style>

@@ -1,0 +1,8 @@
+name: Templeteam
+color: "#1fb720"
+students:
+  - kian-khadempour
+  - cian-chadempour
+  - sian-shadempour
+point_events:
+  - "1"

@@ -1,0 +1,150 @@
+---
+interface Props {
+  pointEvents: {
+    name: string;
+    description: string;
+    points: number;
+    date: Date;
+  }[];
+}
+
+const { pointEvents } = Astro.props;
+const options = {
+  formatMatcher: "best fit",
+  dateStyle: "long",
+};
+---
+
+<div class="table">
+  <h2>Point History</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Points</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      { pointEvents.length === 0 ? (
+        <tr>
+          <th colspan="3">No Points 😔</th>
+        </tr>
+      ) : (
+        pointEvents.map((point_event) => (
+          <tr>
+            <th>{point_event.description ? <div class="abbr" text=`${point_event.description}` tabindex="0">{point_event.name}</div> : point_event.name}</th>
+            <td class="number">{point_event.points}</td>
+            <td>{point_event.date.toLocaleDateString("en-CA", options)}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  :root {
+    --header-brightness: -5;
+    --even-brightness: -2;
+    --odd-brightness: 2;
+    --on-hover-delta: 3;
+  }
+
+  th,
+  td {
+    color: var(--copy);
+    font-family: var(--text-font);
+  }
+
+  .table {
+    background-color: var(--foreground);
+    border: 3px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: left;
+
+    & h2 {
+      margin-bottom: 1rem;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid var(--border);
+
+
+    & tr {
+      background-color: var(--foreground);
+    }
+
+    & thead {
+      & tr {
+        background-color: hsl(from var(--foreground) h s calc(l + var(--header-brightness)));
+      }
+
+      & tr:hover {
+        background-color: hsl(from var(--foreground) h s calc(calc(l + var(--header-brightness)) + var(--on-hover-delta)));
+      }
+    }
+
+    & tbody {
+      & tr:nth-child(even) {
+        background-color: hsl(from var(--foreground) h s calc(l + var(--even-brightness)));
+      }
+
+      & tr:nth-child(even):hover {
+        background-color: hsl(from var(--foreground) h s calc(calc(l + var(--even-brightness)) + var(--on-hover-delta)));
+      }
+
+      & tr:nth-child(odd) {
+        background-color: hsl(from var(--foreground) h s calc(l + var(--odd-brightness)));
+      }
+
+      & tr:nth-child(odd):hover {
+        background-color: hsl(from var(--foreground) h s calc(calc(l + var(--odd-brightness)) + var(--on-hover-delta)));
+      }
+    }
+
+    & th,
+    & td {
+      border: 2px solid var(--border);
+      padding: 5px;
+    }
+  }
+
+  div.abbr[text] {
+    position: relative;
+    display: inline-block;
+    /* ensure consistent styling across browsers */
+    text-decoration: underline dotted;
+  }
+
+  div.abbr[text]:hover::after,
+  div.abbr[text]:focus::after {
+    content: attr(text);
+
+    /* position tooltip like the native one */
+    position: absolute;
+    left: 0px;
+    bottom: -30px;
+    width: 300px;
+    /* white-space: nowrap; */
+
+    /* style tooltip */
+    background-color: var(--background);
+    color: var(--copy);
+    border-radius: 3px;
+    box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.4);
+    font-size: 14px;
+    padding: 3px 5px;
+  }
+
+  @media screen and (min-width: 620px) {
+    .table {
+      flex-grow: 1;
+      height: fit-content;
+    }
+  }
+</style>
