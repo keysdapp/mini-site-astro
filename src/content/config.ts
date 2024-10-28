@@ -15,7 +15,7 @@ const students = defineCollection({
   schema: z.object({
     first_name: z.string(),
     last_name: z.string(),
-    grade: z.number().int().gte(8).lte(12),
+    grad_year: z.number(),
   }),
 });
 

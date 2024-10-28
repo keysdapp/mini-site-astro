@@ -9,7 +9,7 @@ interface Props {
 const { id, name, points, color } = Astro.props;
 ---
 
-<a href=`/teams/${id}/` class="card">
+<a href=`/${id}/` class="card">
   <h2>{name}</h2>
   <p class="points">{points}</p>
 </a>

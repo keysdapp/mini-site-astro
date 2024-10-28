@@ -2,26 +2,102 @@
 import Layout from "@layouts/Layout.astro";
 import TeamCard from "@components/TeamCard.astro";
 import Header from "@components/Header.astro";
-import MyChart from "@components/Chart.tsx";
+import { TeamsChart } from "@components/Chart.tsx";
 import { getCollection } from "astro:content";
 import { getEntries } from "astro:content";
 import type { TeamCardData } from "@lib/types";
 
-const teamsCollection = await getCollection("teams");
-const teams: TeamCardData[] = await Promise.all(
-  teamsCollection.map(async (team) => {
-    const id = team.id;
-    const name = team.data.name;
-    const color = team.data.color;
-    const point_events = await getEntries(team.data.point_events);
-    const points = point_events.reduce(
-      (acc, event) => acc + event.data.points,
-      0,
-    );
+const now = new Date();
+const SEPTEMBER = 8;
+const OCTOBER = 9;
+const NOVEMBER = 10;
+const DECEMBER = 11;
+const JANUARY = 0;
+const FEBRUARY = 1;
+const MARCH = 2;
+const APRIL = 3;
+const MAY = 4;
+const JUNE = 5;
 
-    return { id, name, color, points };
+const teamsCollection = await getCollection("teams");
+const teams: TeamCardData[] = (
+  await Promise.all(
+    teamsCollection.map(async (team) => {
+      const id = team.id;
+      const name = team.data.name;
+      const color = team.data.color;
+      const point_events = await getEntries(team.data.point_events);
+      const points = point_events.reduce(
+        (acc, event) => acc + event.data.points,
+        0,
+      );
+
+      return { id, name, color, points };
+    }),
+  )
+).sort((a, b) => a.points - b.points);
+
+const startDate = new Date(
+  now.getFullYear() - (now.getMonth() < SEPTEMBER ? 1 : 0),
+  SEPTEMBER,
+  1,
+);
+const endDate = new Date(startDate.getFullYear() + 1, JUNE, 30);
+
+const teamsPointEvents = await Promise.all(
+  teamsCollection.map(async (team) => {
+    const point_events = await getEntries(team.data.point_events);
+    return point_events
+      .map((event) => ({
+        date: event.data.date,
+        points: event.data.points,
+      }))
+      .filter((pointEvent) => {
+        return pointEvent.date >= startDate && pointEvent.date <= endDate;
+      })
+      .sort((a, b) => {
+        return b.date.getTime() - a.date.getTime();
+      });
   }),
 );
+
+const teamsPointEventsValues = teamsPointEvents.map((pointEvents) => {
+  let total = 0;
+  let pointTotalsHistory = new Map<number, number>()
+    .set(SEPTEMBER, 0)
+    .set(OCTOBER, NaN)
+    .set(NOVEMBER, NaN)
+    .set(DECEMBER, NaN)
+    .set(JANUARY, NaN)
+    .set(FEBRUARY, NaN)
+    .set(MARCH, NaN)
+    .set(APRIL, NaN)
+    .set(MAY, NaN)
+    .set(JUNE, NaN);
+
+  pointEvents.toReversed().forEach((pointEvent) => {
+    total += pointEvent.points;
+    pointTotalsHistory.set(pointEvent.date.getMonth(), total);
+  });
+
+  [
+    OCTOBER,
+    NOVEMBER,
+    DECEMBER,
+    JANUARY,
+    FEBRUARY,
+    MARCH,
+    APRIL,
+    MAY,
+    JUNE,
+  ].forEach((month) => {
+    if (isNaN(pointTotalsHistory.get(month))) {
+      pointTotalsHistory.set(month, pointTotalsHistory.get(month - 1));
+    }
+  });
+
+  return Array.from(pointTotalsHistory.values());
+});
 ---
 
 <Layout title="Welcome to Astro.">
@@ -33,7 +109,11 @@ const teams: TeamCardData[] = await Promise.all(
 
     <section class="chart">
       <h2>Points Over Time</h2>
-      <MyChart client:load />
+      <TeamsChart
+        client:load
+        teams={teams}
+        pointEvents={teamsPointEventsValues}
+      />
     </section>
   </main>
 </Layout>

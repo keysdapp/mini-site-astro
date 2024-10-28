@@ -1,0 +1,163 @@
+---
+import Header from "@components/Header.astro";
+import Layout from "@layouts/Layout.astro";
+import StudentsTable from "@components/StudentsTable.astro";
+import { getCollection } from "astro:content";
+import { getEntries } from "astro:content";
+import PointHistoryTable from "@components/PointHistoryTable.astro";
+import { TeamChart } from "@components/Chart";
+
+export const prerender = true;
+export function getStaticPaths() {
+  return [
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+    { params: { id: "4" } },
+    { params: { id: "5" } },
+  ];
+}
+
+const now = new Date();
+const SEPTEMBER = 8;
+const OCTOBER = 9;
+const NOVEMBER = 10;
+const DECEMBER = 11;
+const JANUARY = 0;
+const FEBRUARY = 1;
+const MARCH = 2;
+const APRIL = 3;
+const MAY = 4;
+const JUNE = 5;
+
+const gradYearToGrade = (gradYear: number) => {
+  const year = now.getFullYear() + (now.getMonth() >= SEPTEMBER ? 1 : 0);
+  return gradYear - year + 12;
+};
+
+const teams = await getCollection("teams");
+
+const { id } = Astro.params;
+
+const team = teams.find((team) => team.id === id);
+if (!team) {
+  return { status: 404 };
+}
+
+const studentsCollection = await getEntries(team.data.students);
+const students = studentsCollection.map((student) => {
+  return {
+    full_name: student.data.first_name + " " + student.data.last_name,
+    grade: gradYearToGrade(student.data.grad_year),
+  };
+});
+
+const pointEventsCollection = await getEntries(team.data.point_events);
+
+const startDate = new Date(
+  now.getFullYear() - (now.getMonth() < SEPTEMBER ? 1 : 0),
+  SEPTEMBER,
+  1,
+);
+const endDate = new Date(startDate.getFullYear() + 1, JUNE, 30);
+
+const pointEvents = pointEventsCollection
+  .map((pointEvent) => {
+    return {
+      name: pointEvent.data.name,
+      description: pointEvent.data.description,
+      points: pointEvent.data.points,
+      date: pointEvent.data.date,
+    };
+  })
+  .filter((pointEvent) => {
+    return pointEvent.date >= startDate && pointEvent.date <= endDate;
+  })
+  .sort((a, b) => {
+    return b.date.getTime() - a.date.getTime();
+  });
+
+let total = 0;
+let pointTotalsHistory = new Map<number, number>()
+  .set(SEPTEMBER, 0)
+  .set(OCTOBER, NaN)
+  .set(NOVEMBER, NaN)
+  .set(DECEMBER, NaN)
+  .set(JANUARY, NaN)
+  .set(FEBRUARY, NaN)
+  .set(MARCH, NaN)
+  .set(APRIL, NaN)
+  .set(MAY, NaN)
+  .set(JUNE, NaN);
+
+pointEvents.toReversed().forEach((pointEvent) => {
+  total += pointEvent.points;
+  pointTotalsHistory.set(pointEvent.date.getMonth(), total);
+});
+
+[
+  OCTOBER,
+  NOVEMBER,
+  DECEMBER,
+  JANUARY,
+  FEBRUARY,
+  MARCH,
+  APRIL,
+  MAY,
+  JUNE,
+].forEach((month) => {
+  if (isNaN(pointTotalsHistory.get(month))) {
+    pointTotalsHistory.set(month, pointTotalsHistory.get(month - 1));
+  }
+});
+---
+
+<Layout title=`${team.data.name} - Teams`>
+  <Header title={team.data.name} />
+  <main>
+    <section class="tables">
+      <StudentsTable {students} />
+      <PointHistoryTable {pointEvents} />
+    </section>
+    <section class="chart">
+      <h2>Points Over Time</h2>
+      <TeamChart
+        client:load
+        team={team.data}
+        pointEvents={[...pointTotalsHistory.values()]}
+      />
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .tables {
+    margin: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .chart {
+    background-color: var(--foreground);
+    padding: 0.8rem 1rem;
+    grid-column: span 4;
+
+    & div {
+      min-height: 300px;
+    }
+  }
+
+  @media screen and (min-width: 620px) {
+    .tables {
+      flex-direction: row;
+    }
+
+    .chart {
+      margin: 1rem auto;
+      border: 3px solid var(--border);
+      border-radius: 20px;
+      width: clamp(500px, 80%, 900px);
+    }
+  }
+</style>
